@@ -41,8 +41,8 @@ def is_link_exists(link):
     return any(course.url == link for course in available_marks_courses)
 
 def get_available_marks_links():
-    sb.open("https://ritaj.birzeit.edu/student/marks/term-summary")
-    # sb.open("https://ritaj.birzeit.edu/student/marks/term-summary?term=1211") #TODO: remove this line
+    # sb.open("https://ritaj.birzeit.edu/student/marks/term-summary")
+    sb.open("https://ritaj.birzeit.edu/student/marks/term-summary?term=1211") #TODO: remove this line
     sb.wait(3)
 
     cells_selector = "#slave > table > tbody > tr > td:nth-child(5) > a"
@@ -51,7 +51,7 @@ def get_available_marks_links():
         mark_link = cell.get_attribute("href")
         if not is_link_exists(mark_link):
             available_marks_courses.append(Course(url=mark_link))
-
+    
     sb.wait(2)
 
 def get_course_mark(course):
@@ -69,9 +69,14 @@ def get_course_mark(course):
     course_mark = sb.get_text(course_mark_selector)
     course.mark = course_mark
 
-    course_average_selector = "#slave > table > tbody > tr:nth-child(5) > td"
-    course_average = sb.get_text(course_average_selector)
-    course.average = course_average
+    try:
+        course_average_selector = "#slave > table > tbody > tr:nth-child(5) > td"
+        course_average = sb.get_text(course_average_selector)
+        course.average = course_average
+    
+    except Exception:
+        pass
+
 
 def send_telegram_message(course):
     print(course)
@@ -97,8 +102,10 @@ with SB(uc=True) as sb:
 
                     sb.wait(3)
             
-            except Exception:
+            except Exception as e:
                 # if the user login from his browser, the session will be expired, this try except will handle this case
-                pass
+                print(e)
+                sb.wait(3)
+                break
 
         sb.wait(CHECK_EVERY)

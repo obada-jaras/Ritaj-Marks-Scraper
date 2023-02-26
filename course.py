@@ -10,4 +10,4 @@ class Course:
 
 
     def __str__(self):
-        return f"{self.symbol} {self.name} {self.mark} {self.average}"
+        return f"{self.symbol} {self.name} {self.mark} {self.average}" + f" {self.checked} {self.url}" #TODO: remove the second f-string
