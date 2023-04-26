@@ -1,10 +1,11 @@
 import contextlib
 from seleniumbase import SB
 from course import Course
+from config import STUDENT_ID, PASSWORD
+
+
 
 CHECK_EVERY = 15 # seconds
-STUDENT_ID = "1191319"
-PASSWORD = "password here"
 
 available_marks_courses = []
 
@@ -41,8 +42,8 @@ def is_link_exists(link):
     return any(course.url == link for course in available_marks_courses)
 
 def get_available_marks_links():
-    # sb.open("https://ritaj.birzeit.edu/student/marks/term-summary")
-    sb.open("https://ritaj.birzeit.edu/student/marks/term-summary?term=1211") #TODO: remove this line
+    sb.open("https://ritaj.birzeit.edu/student/marks/term-summary")
+    # sb.open("https://ritaj.birzeit.edu/student/marks/term-summary?term=1211") #TODO: remove this line
     sb.wait(3)
 
     cells_selector = "#slave > table > tbody > tr > td:nth-child(5) > a"
