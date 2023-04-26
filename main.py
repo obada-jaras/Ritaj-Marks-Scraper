@@ -1,22 +1,68 @@
+import asyncio
 import contextlib
 from seleniumbase import SB
+from telegram import Bot
+
 from course import Course
 from config import STUDENT_ID, PASSWORD
+from config import TELEGRAM_API_TOKEN
 
 
 
 CHECK_EVERY = 15 # seconds
-
 available_marks_courses = []
+
+sb = None
+
+
+bot = Bot(TELEGRAM_API_TOKEN)
+
+
+async def main():
+    global sb
+
+    await send_telegram_message("Bot started!")
+
+
+    with SB(uc=True) as sb:
+        login()
+
+        while True:
+            check_if_login_needed()
+            get_available_marks_links()
+
+            for course in available_marks_courses:
+                try:
+                    if not course.checked:
+                        get_course_mark(course)
+                        # send_telegram_message(course)
+                        course.checked = True
+
+                        sb.wait(3)
+
+                except Exception as e:
+                    # if the user login from his browser, the session will be expired, this try except will handle this case
+                    print(e)
+                    sb.wait(3)
+                    break
+
+            sb.wait(CHECK_EVERY)
+
+
 
 
 def login():
+    global sb
+
     sb.open("https://ritaj.birzeit.edu")
     sb.wait(7)
 
     with contextlib.suppress(Exception):
-        human_checkbox_selector = "#cf-stage > div.ctp-checkbox-container > label > input[type=checkbox]"
-        if human_checkbox := sb.find_element(human_checkbox_selector):
+        human_checkbox_selector1 = "#cf-stage > div.ctp-checkbox-container > label > input[type=checkbox]"
+        human_checkbox_selector2 = "#challenge-stage > div > input"
+        if human_checkbox := sb.find_element(human_checkbox_selector1):
+            sb.click(human_checkbox)
+        elif human_checkbox := sb.find_element(human_checkbox_selector2):
             sb.click(human_checkbox)
         sb.wait(5)
 
@@ -32,7 +78,10 @@ def login():
     sb.click(loginButton_selector)
     sb.wait(3)
 
+
 def check_if_login_needed():
+    global sb
+
     with contextlib.suppress(Exception):
         loginButton_selector = "#register-login > form > table > tbody > tr:nth-child(3) > td > input[type=submit]"
         sb.find_element(loginButton_selector)
@@ -42,6 +91,8 @@ def is_link_exists(link):
     return any(course.url == link for course in available_marks_courses)
 
 def get_available_marks_links():
+    global sb
+
     sb.open("https://ritaj.birzeit.edu/student/marks/term-summary")
     # sb.open("https://ritaj.birzeit.edu/student/marks/term-summary?term=1211") #TODO: remove this line
     sb.wait(3)
@@ -56,6 +107,8 @@ def get_available_marks_links():
     sb.wait(2)
 
 def get_course_mark(course):
+    global sb
+
     sb.open(course.url)
     
     course_symbol_selector = "#slave > table > tbody > tr:nth-child(1) > td"
@@ -79,34 +132,18 @@ def get_course_mark(course):
         pass
 
 
-def send_telegram_message(course):
-    print(course)
+async def send_telegram_message(course):
+    chat_id = 6123911846
+    await bot.send_message(chat_id=chat_id, text=course)
+
 
 def send_all_available_marks():
     print("Sending all available marks") #TODO: remove this line
     for course in available_marks_courses:
-        send_telegram_message(course)
+        # send_telegram_message(course)
 
-with SB(uc=True) as sb:
-    login()
 
-    while True:
-        check_if_login_needed()
-        get_available_marks_links()
 
-        for course in available_marks_courses:
-            try: 
-                if not course.checked:
-                    get_course_mark(course)
-                    send_telegram_message(course)
-                    course.checked = True
 
-                    sb.wait(3)
-            
-            except Exception as e:
-                # if the user login from his browser, the session will be expired, this try except will handle this case
-                print(e)
-                sb.wait(3)
-                break
-
-        sb.wait(CHECK_EVERY)
+if __name__ == '__main__':
+    asyncio.run(main())
