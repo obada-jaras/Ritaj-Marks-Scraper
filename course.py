@@ -10,4 +10,4 @@ class Course:
 
 
     def __str__(self):
-        return f"{self.symbol} {self.name} {self.mark} {self.average}" + f" {self.checked} {self.url}" #TODO: remove the second f-string
+        return f"{self.symbol} - {self.name}\nYour mark:\t{self.mark}\nAverage:\t\t{self.average}"

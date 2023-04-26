@@ -25,17 +25,17 @@ async def main():
 
 
     with SB(uc=True) as sb:
-        login()
+        await login()
 
         while True:
-            check_if_login_needed()
+            await check_if_login_needed()
             get_available_marks_links()
 
             for course in available_marks_courses:
                 try:
                     if not course.checked:
                         get_course_mark(course)
-                        # send_telegram_message(course)
+                        await send_telegram_message(str(course))
                         course.checked = True
 
                         sb.wait(3)
@@ -51,7 +51,7 @@ async def main():
 
 
 
-def login():
+async def login():
     global sb
 
     sb.open("https://ritaj.birzeit.edu")
@@ -78,14 +78,15 @@ def login():
     sb.click(loginButton_selector)
     sb.wait(3)
 
+    await send_telegram_message("Login successful!")
 
-def check_if_login_needed():
+async def check_if_login_needed():
     global sb
 
     with contextlib.suppress(Exception):
         loginButton_selector = "#register-login > form > table > tbody > tr:nth-child(3) > td > input[type=submit]"
         sb.find_element(loginButton_selector)
-        login()
+        await login()
 
 def is_link_exists(link):
     return any(course.url == link for course in available_marks_courses)
@@ -140,8 +141,8 @@ async def send_telegram_message(course):
 def send_all_available_marks():
     print("Sending all available marks") #TODO: remove this line
     for course in available_marks_courses:
+        print("")
         # send_telegram_message(course)
-
 
 
 
